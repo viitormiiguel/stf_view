@@ -6,6 +6,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import streamlit.components.v1 as components
+from streamlit import session_state as ss
+from streamlit_pdf_viewer import pdf_viewer
 
 # DESIGN implement changes to the standard streamlit UI/UX
 st.set_page_config(page_title="rephraise", page_icon="img/rephraise_logo.png",)
@@ -107,23 +109,26 @@ def main_gpt3emailgen():
     with st.expander("Processos e Recursos - Input Ground Truth", expanded=True):
 
         col1, col2 = st.columns(2)
+        
+        filesPdf = [ f for f in os.listdir('test') if f.endswith('.pdf') ]
+        filesHtml = [ f for f in os.listdir('test') if f.endswith('.html') ]
 
         with col1:
-            input_c1 = st.selectbox('Choice the file (Processo .html)', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'))
+            input_c1 = st.selectbox('Escolha o arquivo (Processo .html)', filesHtml)
         
         with col2:
-            input_c2 = st.selectbox('Choice the file (Recurso .pdf)', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'))
+            input_c2 = st.selectbox('Escolha o arquivo (Recurso .pdf)', filesPdf)
 
         email_text = ""  # initialize columns variables
-        # col1, col2, col3, space, col4 = st.columns([5, 5, 5, 0.5, 5])
-        # with col1:
-        #     input_sender = st.text_input('Sender Name', '[rephraise]')
-        # with col2:
-        #     input_recipient = st.text_input('Recipient Name', '[recipient]')
-        # with col3:
-        #     input_style = st.selectbox('Choice a model:',
-        #                                ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'),
-        #                                index=0)
+        col1, col2, col3, space, col4 = st.columns([5, 5, 5, 0.5, 5])
+        with col1:
+            input_sender = st.text_input('Sender Name', '[rephraise]')
+        with col2:
+            input_recipient = st.text_input('Recipient Name', '[recipient]')
+        with col3:
+            input_style = st.selectbox('Choice a model:',
+                                       ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'),
+                                       index=0)
         # with col4:
         #     st.write("\n")  # add spacing
         #     st.write("\n")  # add spacing
@@ -152,10 +157,24 @@ def main_gpt3emailgen():
         st.subheader('\nYou sound incredibly professional!\n')
         with st.expander("SECTION - Email Output", expanded=True):
             st.markdown(email_text)  #output the results
-
+            
     with st.expander("Visualização de Documentos", expanded=True):
 
         col1, col2 = st.columns(2)
+        
+        # pdf_viewer("test/52084980620238217000-recurso.pdf", pages_to_render=[1])        
+        
+        with open('test/52440746020238217000 - RELVOTO1.html','r') as f: 
+            html_data = f.read()
+
+        # Show in webpage
+        st.components.v1.html(html_data, scrolling=True, height=500)
+
+    with st.expander("Resultados Similaridade de Documentos", expanded=True):
+
+        col1, col2 = st.columns(2)
+        
+        st.image("img/pca_exemplo.png")
 
 
 if __name__ == '__main__':
