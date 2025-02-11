@@ -110,6 +110,7 @@ def main():
     st.subheader('\nAnalise de Similaridades\n')
     
     input_c1 = ''
+    input_c2 = ''
 
     with st.expander("Processos e Recursos - Input Ground Truth", expanded=True):
 
@@ -124,28 +125,39 @@ def main():
         with col2:
             input_c2 = st.selectbox('Escolha o arquivo (Recurso .pdf)', filesPdf, index=None, placeholder="Selecionar")
         
-        col1, col2, col3, space, col4 = st.columns([5, 5, 5, 0.5, 5])
+        col1, col2, col3 = st.columns([5, 5, 7])
         
         with col1:
-            input_sender = st.text_input('Sender Name', '[rephraise]')
-        with col2:
-            input_recipient = st.text_input('Recipient Name', '[recipient]')
-        with col3:
-            input_style = st.selectbox('Choice a model:', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'), index=0)
+            input_style = st.selectbox('Escolha a metrica:', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'), index=0)
     
+        with col2:
+            input_style = st.selectbox('Escolha o modelo:', ('paraphrase-multilingual-MiniLM-L12-v2', 'distiluse-base-multilingual-cased-v2', 'all-mpnet-base-v2', 'multi-qa-mpnet-base-dot-v1', 'multi-qa-distilbert-cos-v1'), index=0)
+
+        with col3:
+            st.write("\n")  # add spacing
+            st.write("\n")  # add spacing
+            st.button("Run model")
+
     try:
         
         with st.expander("Visualização de Documentos", expanded=True):
 
+
+            tab1, tab2 = st.tabs(["Processo", "Recurso"])
+
             col1, col2 = st.columns(2)
             
-            # pdf_viewer("test/52084980620238217000-recurso.pdf", pages_to_render=[1])        
-            
-            with open(f'test/{input_c1}','r') as f: 
-                html_data = f.read()
+            with tab1:
 
-            # Show in webpage
-            st.components.v1.html(html_data, scrolling=True, height=500)
+                with open(f'test/{input_c1}','r', encoding='latin-1') as f: 
+                    html_data = f.read()
+
+                # Show in webpage
+                st.components.v1.html(html_data, scrolling=True, height=900)
+
+            with tab2:
+
+                pdf_viewer(f"test/{input_c2}", pages_to_render=[1])        
 
         with st.expander("Resultados Similaridade de Documentos", expanded=True):
 
