@@ -86,23 +86,25 @@ def gen_mail_format(sender, recipient, style, email_contents):
     return email_final_text.get("choices")[0]['text']
 
 
-def main_gpt3emailgen():
+def main():
 
     st.image('img/image_banner.png')  # TITLE and Creator information
+    
     st.markdown('Estudo e Aplicabilidade do Processamento de Linguagem Natural na Análise de Similaridades de Temas STF/STJ'
         'Baseado em um texto de um recurso ou acórdão, quais os temas do STF/STJ possuem similaridade com os textos do processo.'
         'O objetivo é verificar se a ação pode ficar sobrestada aguardando uma decisão superior.')
-    st.write('\n')  # add spacing
+    st.write('\n')  
 
+    ## Corpus 
     st.subheader('\nTemas Corpus (Dataset)\n')
 
-    columns = ['Temas STJ', 'Temas STF']
-    data = [(1309, 1376)]
-    df = pd.DataFrame(data, columns=columns)
-
     st.markdown('Extração de dados do site oficial do STF e STJ, que consta informações de repercussão, descrição, título e tese dos temas. Dataset composto por 2685 registros (temas).')
+    
+    df_stf = pd.read_csv("data/dataset_stf.csv")
 
-    st.table(df)
+    st.subheader('\nDataset STF (exemplo)\n')
+    st.write(df_stf)
+
     
     st.subheader('\nAnalise de Similaridades\n')
 
@@ -114,10 +116,10 @@ def main_gpt3emailgen():
         filesHtml = [ f for f in os.listdir('test') if f.endswith('.html') ]
 
         with col1:
-            input_c1 = st.selectbox('Escolha o arquivo (Processo .html)', filesHtml)
+            input_c1 = st.selectbox('Escolha o arquivo (Processo .html)', filesHtml, index=None, placeholder="Selecionar")
         
         with col2:
-            input_c2 = st.selectbox('Escolha o arquivo (Recurso .pdf)', filesPdf)
+            input_c2 = st.selectbox('Escolha o arquivo (Recurso .pdf)', filesPdf, index=None, placeholder="Selecionar")
 
         email_text = ""  # initialize columns variables
         col1, col2, col3, space, col4 = st.columns([5, 5, 5, 0.5, 5])
@@ -178,5 +180,6 @@ def main_gpt3emailgen():
 
 
 if __name__ == '__main__':
+    
     # call main function
-    main_gpt3emailgen()
+    main()
