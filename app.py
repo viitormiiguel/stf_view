@@ -10,7 +10,7 @@ from streamlit import session_state as ss
 from streamlit_pdf_viewer import pdf_viewer
 
 # DESIGN implement changes to the standard streamlit UI/UX
-st.set_page_config(page_title="rephraise", page_icon="img/rephraise_logo.png",)
+st.set_page_config(page_title="Temas TJRS", page_icon="img/rephraise_logo.png",)
 # Design move app further up and remove top padding
 st.markdown('''<style>.css-1egvi7u {margin-top: -4rem;}</style>''',
     unsafe_allow_html=True)
@@ -88,14 +88,16 @@ def gen_mail_format(sender, recipient, style, email_contents):
 
 def main():
 
-    st.image('img/image_banner.png')  # TITLE and Creator information
+    ## LOGO e Título
+    st.image('img/logo.png')  
     
+    ## Título e Descrição
     st.markdown('Estudo e Aplicabilidade do Processamento de Linguagem Natural na Análise de Similaridades de Temas STF/STJ'
         'Baseado em um texto de um recurso ou acórdão, quais os temas do STF/STJ possuem similaridade com os textos do processo.'
         'O objetivo é verificar se a ação pode ficar sobrestada aguardando uma decisão superior.')
     st.write('\n')  
 
-    ## Corpus 
+    ## Dataset Corpus 
     st.subheader('\nTemas Corpus (Dataset)\n')
 
     st.markdown('Extração de dados do site oficial do STF e STJ, que consta informações de repercussão, descrição, título e tese dos temas. Dataset composto por 2685 registros (temas).')
@@ -104,9 +106,10 @@ def main():
 
     st.subheader('\nDataset STF (exemplo)\n')
     st.write(df_stf)
-
     
     st.subheader('\nAnalise de Similaridades\n')
+    
+    input_c1 = ''
 
     with st.expander("Processos e Recursos - Input Ground Truth", expanded=True):
 
@@ -120,63 +123,38 @@ def main():
         
         with col2:
             input_c2 = st.selectbox('Escolha o arquivo (Recurso .pdf)', filesPdf, index=None, placeholder="Selecionar")
-
-        email_text = ""  # initialize columns variables
+        
         col1, col2, col3, space, col4 = st.columns([5, 5, 5, 0.5, 5])
+        
         with col1:
             input_sender = st.text_input('Sender Name', '[rephraise]')
         with col2:
             input_recipient = st.text_input('Recipient Name', '[recipient]')
         with col3:
-            input_style = st.selectbox('Choice a model:',
-                                       ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'),
-                                       index=0)
-        # with col4:
-        #     st.write("\n")  # add spacing
-        #     st.write("\n")  # add spacing
-        #     if st.button('Generate Email'):
-        #         with st.spinner():
+            input_style = st.selectbox('Choice a model:', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'), index=0)
+    
+    try:
+        
+        with st.expander("Visualização de Documentos", expanded=True):
 
-        #             input_contents = []  # let the user input all the data
-        #             if (input_c1 != "") and (input_c1 != 'topic 1'):
-        #                 input_contents.append(str(input_c1))
-        #             if (input_c2 != "") and (input_c2 != 'topic 2 (optional)'):
-        #                 input_contents.append(str(input_c2))
-
-        #             if (len(input_contents) == 0):  # remind user to provide data
-        #                 st.write('Please fill in some contents for your message!')
-        #             if (len(input_sender) == 0) or (len(input_recipient) == 0):
-        #                 st.write('Sender and Recipient names can not be empty!')
-
-        #             if (len(input_contents) >= 1):  # initiate gpt3 mail gen process
-        #                 if (len(input_sender) != 0) and (len(input_recipient) != 0):
-        #                     email_text = gen_mail_format(input_sender,
-        #                                                  input_recipient,
-        #                                                  input_style,
-        #                                                  input_contents)
-    if email_text != "":
-        st.write('\n')  # add spacing
-        st.subheader('\nYou sound incredibly professional!\n')
-        with st.expander("SECTION - Email Output", expanded=True):
-            st.markdown(email_text)  #output the results
+            col1, col2 = st.columns(2)
             
-    with st.expander("Visualização de Documentos", expanded=True):
+            # pdf_viewer("test/52084980620238217000-recurso.pdf", pages_to_render=[1])        
+            
+            with open(f'test/{input_c1}','r') as f: 
+                html_data = f.read()
 
-        col1, col2 = st.columns(2)
+            # Show in webpage
+            st.components.v1.html(html_data, scrolling=True, height=500)
+
+        with st.expander("Resultados Similaridade de Documentos", expanded=True):
+
+            col1, col2 = st.columns(2)
+            
+            st.image("img/pca_exemplo.png")
         
-        # pdf_viewer("test/52084980620238217000-recurso.pdf", pages_to_render=[1])        
-        
-        with open('test/52440746020238217000 - RELVOTO1.html','r') as f: 
-            html_data = f.read()
-
-        # Show in webpage
-        st.components.v1.html(html_data, scrolling=True, height=500)
-
-    with st.expander("Resultados Similaridade de Documentos", expanded=True):
-
-        col1, col2 = st.columns(2)
-        
-        st.image("img/pca_exemplo.png")
+    except FileNotFoundError:        
+        pass;
 
 
 if __name__ == '__main__':
