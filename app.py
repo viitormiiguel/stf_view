@@ -105,10 +105,19 @@ def main():
 
     st.markdown('Extração de dados do site oficial do STF e STJ, que consta informações de repercussão, descrição, título e tese dos temas. Dataset composto por 2685 registros (temas).')
     
-    df_stf = pd.read_csv("data/dataset_stf.csv")
-
     st.subheader('\nDataset STF (exemplo)\n')
-    st.write(df_stf)
+    
+    tab1, tab2 = st.tabs(["Dados STF", "Dados STJ"])
+
+    col1, col2 = st.columns(2)
+    
+    with tab1:        
+        df_stf = pd.read_csv("data/dataset_stf.csv")
+        st.write(df_stf)
+        
+    # with tab2:
+    #     df_stj = pd.read_csv("data/dataset_stj.csv")
+    #     st.write(df_stj)
     
     st.subheader('\nAnalise de Similaridades\n')
     
