@@ -5,9 +5,12 @@ import openai
 import streamlit as st
 import pandas as pd
 import numpy as np
+
 import streamlit.components.v1 as components
+
 from streamlit import session_state as ss
 from streamlit_pdf_viewer import pdf_viewer
+from annotated_text import annotated_text
 
 # DESIGN implement changes to the standard streamlit UI/UX
 st.set_page_config(page_title="Temas TJRS", page_icon="img/rephraise_logo.png",)
@@ -140,8 +143,9 @@ def main():
 
     try:
         
-        with st.expander("Visualização de Documentos", expanded=True):
-
+        st.subheader('\nVisualização de Documentos\n')
+        
+        with st.expander("Documentos...", expanded=True):
 
             tab1, tab2 = st.tabs(["Processo", "Recurso"])
 
@@ -160,8 +164,24 @@ def main():
                 pdf_viewer(f"test/{input_c2}", pages_to_render=[1])        
 
         with st.expander("Resultados Similaridade de Documentos", expanded=True):
+        
+            st.info('Top 5 most similar sentences in corpus:\n')               
+            
+            st.write('\n')            
+            st.markdown('**Tema 1230** - Termo inicial do reajuste do aux lio-alimenta  o dos servidores do Poder Judici rio da Uni o, considerando-se as disposi  es da Portaria Conjunta 1/2016 do Conselho Nacional de Justi a e da Portaria 297/2016 do Conselho da Justi a Federal. **(Score: 0.7539)**')
+            st.write('\n')  
+            st.markdown('**Tema 915** - Extens o, por via judicial, aos servidores do Poder Judici rio do Estado do Rio de Janeiro do reajuste concedido pela Lei estadual 1.206/1987. **(Score: 0.7499)**')
+            st.write('\n')  
+            st.markdown('**Tema 698** - Limites do Poder Judici rio para determinar obriga  es de fazer ao Estado, consistentes na realiza  o de concursos p blicos, contrata  o de servidores e execu  o de obras que atendam o direito social da sa de, ao qual a Constitui  o da Rep blica garante especial prote. **(Score: 0.7483)**')
+            st.write('\n')  
+            st.markdown('**Tema 248** - Pressupostos de admissibilidade de a  o rescis ria no  mbito da Justi a do Trabalho.**(Score: 0.7471)**')
+            st.write('\n')  
+            st.markdown('**Tema 811** - a) Cabimento de a  o penal privada subsidi ria da p blica ap s o decurso do prazo previsto no art. 46 do C digo de Processo Penal, na hip tese de o Minist rio P blico n o oferecer den ncia, promover o arquivamento ou requisitar dilig ncias externas no prazo legal;'
+                'b) Ocorr ncia de prejudicialidade da queixa quando o Minist rio P blico, ap s o prazo legal para propositura da a  o penal (art. 46 do CPP), oferecer den ncia, promover o arquivamento do inqu rito ou determinar a realiza  o de dilig ncias externas. **(Score: 0.7393)**')
 
-            col1, col2 = st.columns(2)
+            st.divider() 
+
+            col1, col2 = st.columns(2)            
             
             st.image("img/pca_exemplo.png")
         
