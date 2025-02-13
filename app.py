@@ -39,65 +39,27 @@ hide_streamlit_footer = """<style>#MainMenu {visibility: hidden;}
                         footer {visibility: hidden;}</style>"""
 st.markdown(hide_streamlit_footer, unsafe_allow_html=True)
 
-
 # Connect to OpenAI GPT-3, fetch API key from Streamlit secrets
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-
-def gen_mail_contents(email_contents):
-
-    # iterate through all seperate topics
-    for topic in range(len(email_contents)):
-        input_text = email_contents[topic]
-        rephrased_content = openai.Completion.create(
-            engine="text-davinci-002",
-            prompt=f"Rewrite the text to be elaborate and polite.\nAbbreviations need to be replaced.\nText: {input_text}\nRewritten text:",
-            # prompt=f"Rewrite the text to sound professional, elaborate and polite.\nText: {input_text}\nRewritten text:",
-            temperature=0.8,
-            max_tokens=len(input_text)*3,
-            top_p=0.8,
-            best_of=2,
-            frequency_penalty=0.0,
-            presence_penalty=0.0)
-
-        # replace existing topic text with updated
-        email_contents[topic] = rephrased_content.get("choices")[0]['text']
-    return email_contents
-
-
-def gen_mail_format(sender, recipient, style, email_contents):
-    # update the contents data with more formal statements
-    email_contents = gen_mail_contents(email_contents)
-    # st.write(email_contents)  # view augmented contents
-
-    contents_str, contents_length = "", 0
-    for topic in range(len(email_contents)):  # aggregate all contents into one
-        contents_str = contents_str + f"\nContent{topic+1}: " + email_contents[topic]
-        contents_length += len(email_contents[topic])  # calc total chars
-
-    email_final_text = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=f"Write a professional email sounds {style} and includes Content1 and Content2 in that order.\n\nSender: {sender}\nRecipient: {recipient} {contents_str}\n\nEmail Text:",
-        # prompt=f"Write a professional sounding email text that includes all of the following contents separately.\nThe text needs to be written to adhere to the specified writing styles and abbreviations need to be replaced.\n\nSender: {sender}\nRecipient: {recipient} {contents_str}\nWriting Styles: motivated, formal\n\nEmail Text:",
-        temperature=0.8,
-        max_tokens=contents_length*2,
-        top_p=0.8,
-        best_of=2,
-        frequency_penalty=0.0,
-        presence_penalty=0.0)
-
-    return email_final_text.get("choices")[0]['text']
-
 
 def main():
 
     ## LOGO e Título
     st.image('img/logo.png')  
-    
-    ## Título e Descrição
-    st.markdown('Estudo e Aplicabilidade do Processamento de Linguagem Natural na Análise de Similaridades de Temas STF/STJ'
+
+    # Using "with" notation
+    with st.sidebar:
+        
+        st.subheader('Similaridade de Temas')
+        
+        st.markdown('Estudo e Aplicabilidade do Processamento de Linguagem Natural na Análise de Similaridades de Temas STF/STJ'
         'Baseado em um texto de um recurso ou acórdão, quais os temas do STF/STJ possuem similaridade com os textos do processo.'
         'O objetivo é verificar se a ação pode ficar sobrestada aguardando uma decisão superior.')
+    
+    ## Título e Descrição
+    # st.markdown('Estudo e Aplicabilidade do Processamento de Linguagem Natural na Análise de Similaridades de Temas STF/STJ'
+    #     'Baseado em um texto de um recurso ou acórdão, quais os temas do STF/STJ possuem similaridade com os textos do processo.'
+    #     'O objetivo é verificar se a ação pode ficar sobrestada aguardando uma decisão superior.')
     st.write('\n')  
 
     ## Dataset Corpus 
