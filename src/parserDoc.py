@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 def getContentHtml(arquivo):
 
-    with open("tests/" + arquivo) as fp:
+    with open("test/" + arquivo) as fp:
         
         soup = BeautifulSoup(fp, 'html.parser')
         
