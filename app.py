@@ -15,6 +15,7 @@ from annotated_text import annotated_text
 from pathlib import Path
 
 from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
+from src.process import similarityCompare
 
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
 
@@ -24,11 +25,11 @@ st.set_page_config(page_title="Temas TJRS", page_icon="img/rephraise_logo.png",)
 # Connect to OpenAI GPT-3, fetch API key from Streamlit secrets
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def callParser(arquivo):
+def callParser(arquivo, modelo):
     
     ret = getContentHtml(arquivo)
     
-    print(ret)
+    similarityCompare(ret, modelo)
     
     return ''
 
@@ -86,10 +87,10 @@ def main():
         col1, col2, col3 = st.columns([5, 5, 7])
         
         with col1:
-            input_style = st.selectbox('Escolha a metrica:', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'), index=0)
+            input_metric = st.selectbox('Escolha a metrica:', ('Cosine Similarity', 'Re-Rank', 'Cross-encoder'), index=0)
     
         with col2:
-            input_style = st.selectbox('Escolha o modelo:', ('paraphrase-multilingual-MiniLM-L12-v2', 'distiluse-base-multilingual-cased-v2', 'all-mpnet-base-v2', 'multi-qa-mpnet-base-dot-v1', 'multi-qa-distilbert-cos-v1'), index=0)
+            input_model = st.selectbox('Escolha o modelo:', ('paraphrase-multilingual-MiniLM-L12-v2', 'distiluse-base-multilingual-cased-v2', 'all-mpnet-base-v2', 'multi-qa-mpnet-base-dot-v1', 'multi-qa-distilbert-cos-v1'), index=0)
 
         with col3:
             st.write("\n")  # add spacing
@@ -98,7 +99,7 @@ def main():
             # st.button("Run Model")
             
             if submitted:
-                callParser(input_c1)                
+                callParser(input_c1, input_model)                
             
         try:
         
