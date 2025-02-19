@@ -1,4 +1,5 @@
 
+import torch
 import spacy
 import csv
 import time
@@ -34,14 +35,36 @@ def similarityCompare(ret, modelo):
         embeddings2 = model.encode(ret)
 
         # Compute cosine similarities
-        similarities = model.similarity(embeddings1, embeddings2)       
+        similarities = model.similarity(embeddings1, embeddings2)     
+                
+        retorno = []
         
         for idx_j, sentence1 in enumerate(ret):
             
             for idx_i, sentence2 in enumerate(temas):
+                # print(f" - {sentence2: <30}: {similarities[idx_i][idx_j]:.4f}")
+                saida = f"{similarities[idx_i][idx_j]:.4f}"
+                retorno.append(str(sentence2 + ' ' + saida))
                 
-                ## SBERT ==========================================================
-                print(f" - {sentence2: <30}: {similarities[idx_i][idx_j]:.4f}")
+            break
+                
+        return retorno
+        
+    except RuntimeError:        
+        pass
+
+def similarityTop(ret, modelo):    
+    
+    try:
+                
+        # 1. Load a pretrained Sentence Transformer model
+        model = SentenceTransformer(modelo, similarity_fn_name=SimilarityFunction.COSINE)
+
+        # 2. Get the corpus
+        corpus = getCorpus()
+
+        corpus_embeddings = model.encode(corpus, convert_to_tensor=True)
+        
         
     except RuntimeError:        
         pass

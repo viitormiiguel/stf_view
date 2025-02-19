@@ -34,7 +34,7 @@ def getContentAllHtml(arquivo):
     
     all = ''
     
-    with open("data/tests/" + arquivo) as fp:
+    with open("test/" + arquivo) as fp:
         
         soup = BeautifulSoup(fp, 'html.parser')
         
