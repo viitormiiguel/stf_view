@@ -15,7 +15,7 @@ from annotated_text import annotated_text
 from pathlib import Path
 
 from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
-from src.process import similarityCompare
+from src.runSimilarity import similarityCompare, similarityTop
 from src.runSummarize import summaryText
 
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
@@ -38,7 +38,7 @@ def callParser(arquivo, modelo):
     
     ret = getContentAllHtml(arquivo)
         
-    r = similarityCompare(preprocess_text, modelo)
+    r = similarityTop(preprocess_text, modelo)
         
     return r
 
@@ -106,10 +106,7 @@ def main():
             st.write("\n")  # add spacing
             st.write("\n")  # add spacing
             
-            submitted = st.form_submit_button("Run Model")         
-            
-        # if input_c1 != '': 
-        #     retSum = summaryTextGPT3(input_c1)   
+            submitted = st.form_submit_button("Run Model")
             
         if submitted:
             
@@ -138,15 +135,15 @@ def main():
             except FileNotFoundError:        
                 pass;
 
-            st.divider() 
+            # st.divider() 
             
-            st.write('**Simuarização de Documentos**') 
+            # st.write('**Sumarização de Documentos**') 
                        
             # st.markdown(retSum)
 
             st.divider() 
             
-            st.info('Top 5 most similar sentences in corpus:\n')
+            st.info('Top 50 most similar sentences in corpus:\n')
             
             for r in retorno:
                 
@@ -159,6 +156,19 @@ def main():
             
             ## PCA Result
             st.image("img/pca_exemplo.png")  
+            
+    
+    st.subheader('Prompt RAG\n')
+            
+    with st.form("ragExec"):            
+        
+        txt = st.text_area(
+            "Escreva um texto para sumarização",
+            "Dentre os 50 temas STF e STJ mais similares, faça uma nova analise e sintetize e liste os 5 temas que mais combinam com o corpus.",
+            label_visibility='hidden'
+        )
+        
+        submitted = st.form_submit_button("Run LLM")
 
 
 if __name__ == '__main__':
