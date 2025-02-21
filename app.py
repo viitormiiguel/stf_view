@@ -17,6 +17,7 @@ from pathlib import Path
 from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
 from src.runSimilarity import similarityCompare, similarityTop
 from src.runSummarize import summaryText
+from src.runRag import rag
 
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
 
@@ -79,6 +80,8 @@ def main():
     
     input_c1 = ''
     input_c2 = ''
+    
+    retRag = []
         
     with st.form("parserFiles"):
 
@@ -111,6 +114,7 @@ def main():
         if submitted:
             
             retorno = callParser(input_c1, input_model)   
+            retRag.append(retorno)
             
             try:
             
@@ -148,7 +152,7 @@ def main():
             for r in retorno:
                 
                 st.write('\n')            
-                st.markdown(r)                
+                st.markdown(r)
             
             st.divider() 
 

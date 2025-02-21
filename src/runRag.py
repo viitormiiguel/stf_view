@@ -7,53 +7,90 @@ import csv
 import time
 import sys
 import os
+import streamlit as sl
+import warnings
+warnings.filterwarnings("ignore")
 
-from pathlib import Path
 from langchain.docstore.document import Document
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chat_models import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 from langchain.chains.summarize import load_summarize_chain
+from langchain.prompts import ChatPromptTemplate
+from langchain.chains import SimpleSequentialChain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_community.document_loaders import WebBaseLoader
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.vectorstores import FAISS
+from langchain_core.runnables import RunnablePassthrough
+
 from dotenv import load_dotenv
-
-from src.getCorpus import getCorpusSTJ, getCorpusSTF
-
+from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
+
+from parserDoc import getContentHtml, getContentAllHtml, getContentPdf
+from getCorpus import getCorpusSTJ, getCorpusSTF
 
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-use_long_text = True
+use_long_text = True   
 
-def num_tokens_from_string(string: str, encoding_name: str) -> int:
+def load_prompt():
     
-    encoding = tiktoken.encoding_for_model(encoding_name)
-    num_tokens = len(encoding.encode(string))
-
-    return num_tokens
-
-def rag(texto):
-    
-    ## Model
-    model_name = "gpt-4o-mini"
-    
-    ## Get the corpus
     corpus = getCorpusSTF()
+    
+    processo = getContentAllHtml('52456291520238217000 - RELVOTO1.html')
+    
+    prompt = """ Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, 
+        que busca assinalar os temas STF ou STJ mais relevantes de cada processo .
+        Contexto = {dataset}
+        Pergunta = {question} {processo}.
+        Lista ordenadamente por relevencia os temas mais relevantes em portugues:
+    """
+    prompt = ChatPromptTemplate.from_template(prompt)
+    
+    return prompt
 
-    ## Initialize the model
-    llm = ChatOpenAI(temperature=0, openai_api_key=OPENAI_API_KEY, model_name=model_name)
- 
-    prompt_template = """Dentre os 50 temas STF e STJ mais similares, 
-        faça uma nova analise e sintetize e liste os 5 temas que mais combinam com o corpus.
 
-        {texto}
+def load_llm():
+    
+    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
+    
+    return llm
+            
+def initialize_session_state():
+    
+    if "knowledge_base" not in sl.session_state:
+        sl.session_state["knowledge_base"] = None
+        
+def format_docs(docs):
+    
+    return "\n\n".join(doc.page_content for doc in docs)
+    
+if __name__ == '__main__':
+    
+    query = 'Dentre os temas STF (Supremo Trtibunal Federal) disponiveis, realize uma analise e liste em ordem por revelencia, ao menos os 5, quais os temas que são similares ao texto do '
+        
+    llm     = load_llm()
+    prompt  = load_prompt()
+    
+    
+    similar_embeddings = sl.session_state.knowledge_base.similarity_search(query)
+    similar_embeddings = FAISS.from_documents(documents=similar_embeddings, embedding=OpenAIEmbeddings())
+    
+    retriever = similar_embeddings.as_retriever()
+    
+    rag_chain = (
+            {"context": retriever | format_docs, "question": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
+        )
 
-    Lista de temas mais relevantes em portugues:"""
- 
-    prompt = PromptTemplate(template=prompt_template, input_variables=["texto"])
+    response = rag_chain.invoke(query)
 
-    num_tokens = num_tokens_from_string(texto, model_name)
-
-    gpt_40_mini = 128000
-    verbose 	= True
+    print(response)
