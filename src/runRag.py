@@ -76,8 +76,7 @@ if __name__ == '__main__':
     query = 'Dentre os temas STF (Supremo Trtibunal Federal) disponiveis, realize uma analise e liste em ordem por revelencia, ao menos os 5, quais os temas que são similares ao texto do '
         
     llm     = load_llm()
-    prompt  = load_prompt()
-    
+    prompt  = load_prompt()    
     
     similar_embeddings = sl.session_state.knowledge_base.similarity_search(query)
     similar_embeddings = FAISS.from_documents(documents=similar_embeddings, embedding=OpenAIEmbeddings())

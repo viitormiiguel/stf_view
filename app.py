@@ -6,6 +6,7 @@ import openai
 import streamlit as st
 import pandas as pd
 import numpy as np
+import time
 
 import streamlit.components.v1 as components
 
@@ -14,10 +15,19 @@ from streamlit_pdf_viewer import pdf_viewer
 from annotated_text import annotated_text
 from pathlib import Path
 
+from langchain_community.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
 from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
 from src.runSimilarity import similarityCompare, similarityTop
 from src.runSummarize import summaryText
-from src.runRag import rag
+from src.runLLM import load_prompt, load_llm
+# from src.runRag import rag
 
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
 
@@ -39,9 +49,53 @@ def callParser(arquivo, modelo):
     
     ret = getContentAllHtml(arquivo)
         
-    r = similarityTop(preprocess_text, modelo)
+    r = similarityTop(ret, modelo)
         
     return r
+
+def extract_data():
+    
+    text_chunks = []
+    files = filter(lambda f: f.lower().endswith(".pdf"), os.listdir("uploaded"))
+    file_list = list(files)
+    
+    for file in file_list:
+        loader = PyPDFLoader(os.path.join('uploaded', file))
+        text_chunks += loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(
+            chunk_size = 512,
+            chunk_overlap = 30,
+            length_function = len,
+            separators= ["\n\n", "\n", ".", " "]
+        ))
+    vectorstore = FAISS.from_documents(documents=text_chunks, embedding=OpenAIEmbeddings())
+    
+    return vectorstore
+
+def initialize_session_state():
+    
+    if "knowledge_base" not in st.session_state:
+        st.session_state["knowledge_base"] = None
+        
+def save_uploadedfile(uploadedfile):
+    
+    with open(os.path.join("uploaded", uploadedfile.name), "wb") as f:
+        f.write(uploadedfile.getbuffer())
+
+def remove_files():
+    
+    path = os.path.join(os.getcwd(), 'uploaded')
+    
+    for file_name in os.listdir(path):
+    
+        file = os.path.join(path, file_name)
+    
+        if os.path.isfile(file) and file.endswith(".pdf"):
+            print('Deleting file:', file)
+            os.remove(file)
+            
+def format_docs(docs):
+    
+    return "\n\n".join(doc.page_content for doc in docs)
 
 def main():
 
@@ -164,38 +218,68 @@ def main():
     
     st.subheader('Prompt RAG\n')
             
-    with st.form("ragExec"):            
+    with st.form("ragExec", clear_on_submit=True):     
         
-        txt = st.text_area(
-            "Escreva um texto para sumarização",
-            "Dentre os 50 temas STF e STJ mais similares, faça uma nova analise e sintetize e liste os 5 temas que mais combinam com o corpus.",
-            label_visibility='hidden'
-        )
+        pdf_docs = st.file_uploader(label="Faça o Upload do seu PDF:", accept_multiple_files=True, type=["pdf"])       
         
-        submitted = st.form_submit_button("Run LLM")
+        # txt = st.text_area(
+        #     "Escreva um texto para sumarização",
+        #     "Dentre os 50 temas STF e STJ mais similares, faça uma nova analise e sintetize e liste os 5 temas que mais combinam com o corpus.",
+        #     label_visibility='hidden'
+        # )
+        
+        submitted = st.form_submit_button("Save Document")
+        
+    # Run LLM
+    if submitted and pdf_docs != []:
+        
+        initialize_session_state()
+        
+        for pdf in pdf_docs:
+            save_uploadedfile(pdf)
+            
+        st.session_state.knowledge_base = extract_data()
+        
+        remove_files()
+        
+        pdf_docs = []
+        
+        alert = st.success(body=f"Realizado o Upload do PDF com Sucesso!", icon="✅")
+        
+        time.sleep(3)         
+        alert.empty()
+        
+    
+    query = st.text_input(label='Faça uma pergunta sobre o documento:')
+    
+    if query:
+        
+        try:
+            similar_embeddings = st.session_state.knowledge_base.similarity_search(query)
+            similar_embeddings = FAISS.from_documents(documents=similar_embeddings, embedding=OpenAIEmbeddings())
+            
+            retriever = similar_embeddings.as_retriever()
+            rag_chain = (
+                    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+                    | prompt
+                    | llm
+                    | StrOutputParser()
+                )
+        
+            response = rag_chain.invoke(query)
+            st.write(response)          
 
+        except:
+            
+            alert = st.warning("Por favor, Realize o Upload do PDF que Deseja Realizar Chat", icon="🚨")
+            time.sleep(3)
+            alert.empty()
 
 if __name__ == '__main__':
     
-    preprocess_text = '''Trata-se de embargos de declaração opostos por BANCO DO BRASIL S/A, nos autos do cumprimento de sentença que lhe move JOAQUIM MANOEL
-    GRAVATO GERALDES, em face do acórdão que julgou o agravo de instrumento nº  5287315-84.2023.8.21.7000/RS, assim ementado:
-    AGRAVO DE INSTRUMENTO. NEGÓCIOS JURÍDICOS BANCÁRIOS. EXPURGOS INFLACIONÁRIOS. CÉDULA RURAL PIGNORATÍCIA. AÇÃO COLETIVA. CUMPRIMENTO DE SENTENÇA.
-    VALOR DO LAUDO: R$ 1.240.303,39. FUNDAMENTO: CÉDULAS RURAIS NºS 89/00839-1 E 89/00875-8. ATUALIZAÇÃO MONETÁRIA. O TÍTULO JUDICIAL REFERIU QUE DEVEM SER 
-    CORRIGIDOS MONETARIAMENTE OS VALORES A CONTAR DO PAGAMENTO A MAIOR PELOS ÍNDICES APLICÁVEIS AOS DÉBITOS JUDICIAIS (...), 
-    QUESTÃO QUE NÃO PODE SER ALTERADA NESTA FASE, POIS ACOBERTADA PELA COISA JULGADA, NO CASO, O ENTENDIMENTO DESTE JULGADOR É DE QUE O ÍNDICE APLICÁVEL 
-    AOS DÉBITOS JUDICIAIS É O IGP-M-FORO, POIS INDEXADOR QUE MELHOR REFLETE A CORROSÃO DA MOEDA PELO FENÔMENO INFLACIONÁRIO. A UTILIZAÇÃO DO 
-    PROVIMENTO Nº 14/2022-CGJ, PUBLICADO EM 07/04/2022, SOMENTE SERÁ POSSÍVEL EM CARÁTER SUBSIDIÁRIO, OU SEJA, QUANDO INEXISTIR DEFINIÇÃO A 
-    RESPEITO NOS AUTOS OU NA LEGISLAÇÃO, O QUE NÃO É O CASO DO PRESENTE FEITO.  NO PONTO, RECURSO DESPROVIDO. JUROS DE MORA – TERMO INICIAL. 
-    MESMO EM EXECUÇÕES OU CUMPRIMENTOS DE SENTENÇA INDIVIDUAIS, OS JUROS DE MORA INCIDEM A PARTIR DA CITAÇÃO DO DEVEDOR NO PROCESSO DE CONHECIMENTO DA 
-    AÇÃO CIVIL PÚBLICA QUANDO ESTA SE FUNDAR EM RESPONSABILIDADE CONTRATUAL, CUJO INADIMPLEMENTO JÁ PRODUZA A MORA, SALVO A CONFIGURAÇÃO DESTA EM MOMENTO ANTERIOR. 
-    ENTENDIMENTO PACIFICADO EM SEDE DE JULGAMENTO REPETITIVO PELO SUPERIOR TRIBUNAL DE JUSTIÇA, NO RESP 1.370.899/SP (TEMA 685 DOS RECURSOS REPETITIVOS), 
-    CUJA APLICAÇÃO DEVE SER OBSERVADA EM TODOS OS RECURSOS QUE VENTILEM A MESMA CONTROVÉRSIA. NO PONTO, RECURSO DESPROVIDO. AGRAVO DE INSTRUMENTO DESPROVIDO, POR UNANIMIDADE.
-    (TJRS, AGRAVO DE INSTRUMENTO Nº 5287315-84.2023.8.21.7000, 24ª CÂMARA CÍVEL , DESEMBARGADOR JORGE MARASCHIN DOS SANTOS, POR UNANIMIDADE, JULGADO EM 29/11/2023)
-    A parte embargante alega que há vícios na decisão recorrida. Sustenta que devem ser aplicados os indíces de correção dos débitos judiciais da Justiça Federal. 
-    Argumenta que a aplicação do IGP-M não está prevista na decisão exequenda e acaba por violar a coisa julgada. Afirma que, em se tratando de 
-    devedores solidários, não pode haver consequências diferentes sobre a mesma dívida. Pondera ser omisso o acórdão quanto ao fato de que a aplicação 
-    do IGP-M implica em onerosidade excessiva ao devedor, bem como sobre a utilização do IPCA em todo o período. Manifesta que os juros de mora devem ser 
-    contados desde a citação inicial em cada uma das liquidações e execuções individuais. Prequestiona os dispositivos legais invocados. Pede provimento.'''
     
+    llm     = load_llm()
+    prompt  = load_prompt()
+       
     # call main function
     main()
