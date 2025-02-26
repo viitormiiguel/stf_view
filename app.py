@@ -99,10 +99,10 @@ def format_docs(docs):
 
 def main():
 
-    ## LOGO e Título
+    
     st.image('img/logo.png')  
 
-    # Using "with" notation
+    ## Section Sidebar 
     with st.sidebar:
         
         st.subheader('Similaridade de Temas')
@@ -113,7 +113,7 @@ def main():
     
     st.write('\n')  
 
-    ## Dataset Corpus 
+    ## Section Dataset Corpus 
     st.subheader('\nTemas Corpus (Dataset)\n')
 
     st.markdown('Extração de dados do site oficial do STF e STJ, que consta informações de repercussão, descrição, título e tese dos temas. Dataset composto por 2685 registros (temas).')
@@ -130,6 +130,7 @@ def main():
         df_stj = pd.read_csv("data/dataset_stj.csv", delimiter=";", on_bad_lines='skip')
         st.write(df_stj)
     
+    ## Section Simaliridades
     st.subheader('\nAnalise de Similaridades\n')
     
     input_c1 = ''
@@ -160,18 +161,22 @@ def main():
 
         with col3:
             
-            st.write("\n")  # add spacing
-            st.write("\n")  # add spacing
+            st.write("\n")
+            st.write("\n")
             
+            ## Run Models
             submitted = st.form_submit_button("Run Model")
             
         if submitted:
             
+            ## Method Run Models Similarity
             retorno = callParser(input_c1, input_model)   
+            
             retRag.append(retorno)
             
             try:
-            
+                
+                ## Section visualização            
                 st.write('**Visualização de Documentos**')            
 
                 tab1, tab2 = st.tabs(["Processo", "Recurso (.pdf)"])
@@ -193,14 +198,9 @@ def main():
             except FileNotFoundError:        
                 pass;
 
-            # st.divider() 
-            
-            # st.write('**Sumarização de Documentos**') 
-                       
-            # st.markdown(retSum)
-
             st.divider() 
             
+            ## Section Results
             st.info('Top 50 most similar sentences in corpus:\n')
             
             for r in retorno:
@@ -212,25 +212,20 @@ def main():
 
             col1, col2 = st.columns(2)            
             
-            ## PCA Result
+            ## Section PCA Result
             st.image("img/pca_exemplo.png")  
             
     
+    ## Section RAG
     st.subheader('Prompt RAG\n')
             
     with st.form("ragExec", clear_on_submit=True):     
         
-        pdf_docs = st.file_uploader(label="Faça o Upload do seu PDF:", accept_multiple_files=True, type=["pdf"])       
-        
-        # txt = st.text_area(
-        #     "Escreva um texto para sumarização",
-        #     "Dentre os 50 temas STF e STJ mais similares, faça uma nova analise e sintetize e liste os 5 temas que mais combinam com o corpus.",
-        #     label_visibility='hidden'
-        # )
+        pdf_docs = st.file_uploader(label="Faça o Upload do seu PDF:", accept_multiple_files=True, type=["pdf"])
         
         submitted = st.form_submit_button("Save Document")
         
-    # Run LLM
+    # Section Run LLM
     if submitted and pdf_docs != []:
         
         initialize_session_state()
@@ -248,7 +243,8 @@ def main():
         
         time.sleep(3)         
         alert.empty()
-        
+    
+    
     
     query = st.text_input(label='Faça uma pergunta sobre o documento:')
     
@@ -275,11 +271,14 @@ def main():
             time.sleep(3)
             alert.empty()
 
-if __name__ == '__main__':
+
+if __name__ == '__main__':    
     
+    ## Load LLM
+    llm = load_llm()
     
-    llm     = load_llm()
-    prompt  = load_prompt()
+    ## Load Prompt
+    prompt = load_prompt()
        
     # call main function
     main()
