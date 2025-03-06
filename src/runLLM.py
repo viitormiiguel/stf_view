@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from langchain.prompts import ChatPromptTemplate
 from langchain.chat_models import ChatOpenAI
 
-from getCorpus import getCorpusSTJ, getCorpusSTF
+from src.getCorpus import getCorpusSTJ, getCorpusSTF
 
 warnings.filterwarnings("ignore")
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
@@ -23,14 +23,25 @@ def load_prompt():
     
     corpus = getCorpusSTF()
     
-    print(corpus)
+    # print(corpus)
     
     prompt = """ Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, 
-        que busca assinalar os temas STF ou STJ mais relevantes de cada processo .
+        que busca assinalar os temas STF ou STJ mais relevantes de cada processo.
         Contexto = {context}
         Pergunta = {question}.
         Lista ordenadamente por relevencia os temas mais relevantes em portugues:
     """
+    
+    prompt_template = """
+        Regra:  Voce é um software especialista em assuntos juridicos, 
+        focado em analise de processos e recursos, 
+        que busca assinalar os temas STF ou STJ mais relevantes de cada processo.
+        Caso você não tenha informações relevantes, retorne 'Desculpe não consegui achar uma resolução para a sua questão".
+        Use os parametros abaixo para recuperar o contexto para a resposta.
+        Questão: {query}
+        Contexto: {context}
+    """
+    
     prompt = ChatPromptTemplate.from_template(prompt)
     
     return prompt

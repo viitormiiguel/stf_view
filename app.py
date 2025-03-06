@@ -22,12 +22,13 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.vectorstores import InMemoryVectorStore
 
 from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
 from src.runSimilarity import similarityCompare, similarityTop
 from src.runSummarize import summaryText
 from src.runLLM import load_prompt, load_llm
-# from src.runRag import rag
+
 
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
 
@@ -242,9 +243,7 @@ def main():
         alert = st.success(body=f"Realizado o Upload do PDF com Sucesso!", icon="✅")
         
         time.sleep(3)         
-        alert.empty()
-    
-    
+        alert.empty()    
     
     query = st.text_input(label='Faça uma pergunta sobre o documento:')
     
