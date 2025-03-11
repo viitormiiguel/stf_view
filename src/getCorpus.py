@@ -18,9 +18,14 @@ def getCorpusSTF():
 
 def getCorpusSTJ():
     
-    temas = pd.read_csv('data/dataset_stj.csv', encoding='utf-8', delimiter=';')
+    temas = pd.read_csv('data/dataset_stj_v2.csv', encoding='utf-8', delimiter=',')
     
-    ret = list(temas['Tese Firmada'].values)
+    tmp = temas.loc[temas['Titulo'].notnull()]
+    
+    ret = list(tmp['Titulo'].values)
     
     return ret
 
+if __name__ == "__main__":
+    
+    print(getCorpusSTJ())

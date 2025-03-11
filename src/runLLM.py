@@ -23,7 +23,9 @@ def load_prompt():
     
     corpus = getCorpusSTF()
     
-    # print(corpus)
+    prompt = """Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, que busca assinalar os teses com ou sem repercussao geral (temas) do STF ou STJ mais relevantes de cada processo.
+        Lista ordenadamente por relevencia as teses ou temas com ou sem repercussão geral mais relevantes em portugues.
+    """    
     
     prompt = """ Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, 
         que busca assinalar os temas STF ou STJ mais relevantes de cada processo.

@@ -128,7 +128,7 @@ def main():
         st.write(df_stf)
         
     with tab2:
-        df_stj = pd.read_csv("data/dataset_stj.csv", delimiter=";", on_bad_lines='skip')
+        df_stj = pd.read_csv("data/dataset_stj_v2.csv", delimiter=",", on_bad_lines='skip')
         st.write(df_stj)
     
     ## Section Simaliridades
@@ -138,6 +138,8 @@ def main():
     input_c2 = ''
     
     retRag = []
+    
+    retornoRag = ''
         
     with st.form("parserFiles"):
 
@@ -204,10 +206,12 @@ def main():
             ## Section Results
             st.info('Top 50 most similar sentences in corpus:\n')
             
+            # print(retorno)
             for r in retorno:
                 
                 st.write('\n')            
                 st.markdown(r)
+                retornoRag += r + '\n'
             
             st.divider() 
 
@@ -247,10 +251,15 @@ def main():
     
     query = st.text_input(label='Faça uma pergunta sobre o documento:')
     
+    print(retornoRag)
+    
     if query:
         
+        ## Colocar string inteira do retorno dos teams
+        queryTemas = query + retornoRag
+        
         try:
-            similar_embeddings = st.session_state.knowledge_base.similarity_search(query)
+            similar_embeddings = st.session_state.knowledge_base.similarity_search(queryTemas)
             similar_embeddings = FAISS.from_documents(documents=similar_embeddings, embedding=OpenAIEmbeddings())
             
             retriever = similar_embeddings.as_retriever()
@@ -261,7 +270,7 @@ def main():
                     | StrOutputParser()
                 )
         
-            response = rag_chain.invoke(query)
+            response = rag_chain.invoke(queryTemas)
             st.write(response)          
 
         except:

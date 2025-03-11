@@ -63,8 +63,8 @@ def similarityTop(ret, modelo):
         model = SentenceTransformer(modelo, similarity_fn_name=SimilarityFunction.COSINE)
 
         # 2. Get the corpus
-        corpus = getCorpusSTF()
-
+        corpus = getCorpusSTJ()
+        
         # 3. Compute embeddings
         corpus_embeddings = model.encode(corpus, convert_to_tensor=True)
         
@@ -89,7 +89,8 @@ def similarityTop(ret, modelo):
 
             for score, idx in zip(scores, indices):
                 # print(corpus[idx], f"(Score: {score:.4f})")
-                retorno.append(str(corpus[idx] + ' (Score: ' + str(score) + ')'))
+                # retorno.append(str(corpus[idx] + ' (Score: ' + str(score) + ')'))
+                retorno.append(str(corpus[idx]))
                 
         return retorno
         
