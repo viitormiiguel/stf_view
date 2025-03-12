@@ -206,11 +206,15 @@ def main():
             ## Section Results
             st.info('Top 50 most similar sentences in corpus:\n')
             
-            # print(retorno)
+            st.title('')
+            
             for r in retorno:
                 
-                st.write('\n')            
-                st.markdown(r)
+                cols = st.columns(1)
+                cols[0].write(f'{r}')
+                # st.write('\n')            
+                # st.markdown(r)
+            
                 retornoRag += r + '\n'
             
             st.divider() 
@@ -249,9 +253,9 @@ def main():
         time.sleep(3)         
         alert.empty()    
     
-    query = st.text_input(label='Faça uma pergunta sobre o documento:')
+    query = st.text_area(label='Faça uma pergunta sobre o documento:')
     
-    print(retornoRag)
+    # print(retornoRag)
     
     if query:
         

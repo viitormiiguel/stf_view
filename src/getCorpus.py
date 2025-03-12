@@ -20,6 +20,7 @@ def getCorpusSTJ():
     
     temas = pd.read_csv('data/dataset_stj_v2.csv', encoding='utf-8', delimiter=',')
     
+    ## Retorna somente os temas que possuem titulo (nao vazio)
     tmp = temas.loc[temas['Titulo'].notnull()]
     
     ret = list(tmp['Titulo'].values)
