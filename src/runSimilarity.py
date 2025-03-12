@@ -84,9 +84,6 @@ def similarityTop(ret, modelo):
             
             scores, indices = torch.topk(similarity_scores, k=top_k)
 
-            # print("\nQuery:", query)
-            # print("Top 5 most similar sentences in corpus:")
-
             for score, idx in zip(scores, indices):
                 # print(corpus[idx], f"(Score: {score:.4f})")
                 # retorno.append(str(corpus[idx] + ' (Score: ' + str(score) + ')'))

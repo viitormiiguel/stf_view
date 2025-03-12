@@ -98,8 +98,8 @@ def format_docs(docs):
     
     return "\n\n".join(doc.page_content for doc in docs)
 
-def main():
 
+def header():
     
     st.image('img/logo.png')  
 
@@ -113,7 +113,9 @@ def main():
         'O objetivo é verificar se a ação pode ficar sobrestada aguardando uma decisão superior.')
     
     st.write('\n')  
-
+    
+def sectionDataset():
+    
     ## Section Dataset Corpus 
     st.subheader('\nTemas Corpus (Dataset)\n')
 
@@ -131,15 +133,14 @@ def main():
         df_stj = pd.read_csv("data/dataset_stj_v2.csv", delimiter=",", on_bad_lines='skip')
         st.write(df_stj)
     
-    ## Section Simaliridades
+
+def sectionSimilaridades():
+    
     st.subheader('\nAnalise de Similaridades\n')
     
-    input_c1 = ''
-    input_c2 = ''
-    
+    input_c1, input_c2, retornoRag = '','', ''
+        
     retRag = []
-    
-    retornoRag = ''
         
     with st.form("parserFiles"):
 
@@ -204,16 +205,16 @@ def main():
             st.divider() 
             
             ## Section Results
-            st.info('Top 50 most similar sentences in corpus:\n')
-            
-            st.title('')
-            
+            st.info('Top 50 Temas Similares:\n')
+                        
             for r in retorno:
                 
-                cols = st.columns(1)
-                cols[0].write(f'{r}')
-                # st.write('\n')            
-                # st.markdown(r)
+                html_str = f"""
+                    <style> p.a {{font: 14px Arial;}} </style>
+                    <p class="a"> {r} </p>
+                """
+                
+                st.markdown(html_str, unsafe_allow_html=True)
             
                 retornoRag += r + '\n'
             
@@ -222,8 +223,20 @@ def main():
             col1, col2 = st.columns(2)            
             
             ## Section PCA Result
-            st.image("img/pca_exemplo.png")  
-            
+            st.image("img/pca_exemplo.png") 
+    
+    return retornoRag
+
+def main():
+    
+    ## Section Header
+    header()
+
+    ## Section Dataset
+    sectionDataset()
+    
+    ## Section Similaridades
+    retRag = sectionSimilaridades()
     
     ## Section RAG
     st.subheader('Prompt RAG\n')
@@ -232,8 +245,8 @@ def main():
         
         pdf_docs = st.file_uploader(label="Faça o Upload do seu PDF:", accept_multiple_files=True, type=["pdf"])
         
-        submitted = st.form_submit_button("Save Document")
-        
+        submitted = st.form_submit_button("Salvar Documento")
+                
     # Section Run LLM
     if submitted and pdf_docs != []:
         
@@ -253,14 +266,12 @@ def main():
         time.sleep(3)         
         alert.empty()    
     
-    query = st.text_area(label='Faça uma pergunta sobre o documento:')
-    
-    # print(retornoRag)
-    
+    query = st.text_area(label='Faça uma pergunta sobre o documento:', height=250, value=f"Temas similares: {retRag}")
+        
     if query:
         
         ## Colocar string inteira do retorno dos teams
-        queryTemas = query + retornoRag
+        queryTemas = query + retRag
         
         try:
             similar_embeddings = st.session_state.knowledge_base.similarity_search(queryTemas)
