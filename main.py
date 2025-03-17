@@ -19,6 +19,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
 from src.runLLM import load_prompt, load_llm
+from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
+from src.runSimilarity import similarityCompare, similarityTop
 
 sys.path.append(str(Path(__file__).parent.parent.parent)) 
 
@@ -88,6 +90,9 @@ if __name__ == '__main__':
     
     st.title("📝 Similaridades de Temas")
     
+    retRag = []
+    ragString = ''
+    
     with st.form("ragExec", clear_on_submit=True):        
         
         uploaded_file = st.file_uploader(label="Faça o Upload do seu arquivo:", accept_multiple_files=True, type=["html", "pdf"])
@@ -96,6 +101,18 @@ if __name__ == '__main__':
         
     # Section Run LLM
     if submitted and uploaded_file != []:
+        
+        print(uploaded_file[0].name)
+        
+        ## Get PDF Content
+        retPDF = getContentPdf(uploaded_file[0].name)
+        
+        retSimi = similarityTop(retPDF, 'distiluse-base-multilingual-cased-v2')
+        
+        retRag.append(retSimi)
+        
+        for rr in retRag[0]:
+            ragString += rr
         
         initialize_session_state()
         
@@ -117,7 +134,7 @@ if __name__ == '__main__':
 
     question = st.text_area(
         label="Pergunta algo sobre o documento enviado:",
-        value='Com base na lista de temas do STF/STJ abaixo, analise o seguinte documento e identifique a quais temas ele mais se assemelha. Considere a relação de conteúdo, jurisprudência aplicável e palavras-chave presentes no texto. Liste os temas mais relevantes e explique brevemente o motivo da correspondência. \n ',
+        value=f"Com base na lista de temas do STF/STJ abaixo, analise o seguinte documento e identifique a quais temas ele mais se assemelha. Considere a relação de conteúdo, jurisprudência aplicável e palavras-chave presentes no texto. Liste os temas mais relevantes e explique brevemente o motivo da correspondência. \n\nTemas Similares: \n\n {ragString}",
         # disabled = not uploaded_file,
         height=300,
     )
@@ -125,7 +142,7 @@ if __name__ == '__main__':
     if question:
         
         ## Colocar string inteira do retorno dos teams
-        queryTemas = question + retRag
+        queryTemas = question + ragString
         
         try:
             similar_embeddings = st.session_state.knowledge_base.similarity_search(queryTemas)

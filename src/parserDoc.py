@@ -55,12 +55,13 @@ def getContentAllHtml(arquivo):
 def getContentPdf(processo):
     
     # Abre arquivo de Processo
-    reader = PdfReader(processo)
+    reader = PdfReader('test/' + processo)
 
     # printing number of pages in pdf file
-    print(len(reader.pages))
+    # print(len(reader.pages))
     
     arText = ''
+    
     # getting a specific page from the pdf file
     for i in range(len(reader.pages)):
                 
@@ -71,8 +72,12 @@ def getContentPdf(processo):
         # text = page.extract_text(extraction_mode="layout", layout_mode_space_vertically=False)
         
         # print('==============================================================================')        
-        print(text.strip())
+        # print(text.strip())
         
         arText += '\n' + text.strip()
     
     return arText
+
+if __name__ == "__main__":
+    
+    getContentPdf('test/50708196120238217000-recurso.pdf')
