@@ -10,13 +10,14 @@ import streamlit as st
 from openai import OpenAI
 from pathlib import Path
 
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_community.document_loaders import AsyncHtmlLoader
 
 from src.runLLM import load_prompt, load_llm
 from src.parserDoc import getContentHtml, getContentAllHtml, getContentPdf
@@ -52,17 +53,42 @@ def remove_files():
 def extract_data():
     
     text_chunks = []
+    
     files = filter(lambda f: f.lower().endswith(".pdf"), os.listdir("uploaded"))
-    file_list = list(files)
+        
+    file_list = list(files)    
     
     for file in file_list:
-        loader = PyPDFLoader(os.path.join('uploaded', file))
-        text_chunks += loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(
-            chunk_size = 512,
-            chunk_overlap = 30,
-            length_function = len,
-            separators= ["\n\n", "\n", ".", " "]
-        ))
+        
+        if '.pdf' in file:
+        
+            loader = PyPDFLoader(os.path.join('uploaded', file))
+            
+            text_chunks += loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(
+                chunk_size = 512,
+                chunk_overlap = 30,
+                length_function = len,
+                separators= ["\n\n", "\n", ".", " "]
+            ))
+            
+        if '.html' in file:
+                     
+            text_content = getContentAllHtml(file)
+            
+            loader = TextLoader(text_content)
+            
+            text_chunks += loader.load_and_split(text_splitter=RecursiveCharacterTextSplitter(
+                chunk_size = 512,
+                chunk_overlap = 30,
+                length_function = len,
+                separators= ["\n\n", "\n", ".", " "]
+            ))
+            
+            # documents = loader.load()
+            
+            # text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+            # text_chunks = text_splitter.split_documents(documents)
+            
     vectorstore = FAISS.from_documents(documents=text_chunks, embedding=OpenAIEmbeddings())
     
     return vectorstore
@@ -101,11 +127,12 @@ if __name__ == '__main__':
         
     # Section Run LLM
     if submitted and uploaded_file != []:
-        
-        print(uploaded_file[0].name)
-        
-        ## Get PDF Content
-        retPDF = getContentPdf(uploaded_file[0].name)
+                
+        if '.pdf' in uploaded_file[0]:                
+            ## Get PDF Content
+            retPDF = getContentPdf(uploaded_file[0].name)
+        else:
+            retPDF = getContentAllHtml(uploaded_file[0].name)
         
         retSimi = similarityTop(retPDF, 'distiluse-base-multilingual-cased-v2')
         
@@ -136,7 +163,7 @@ if __name__ == '__main__':
         label="Pergunta algo sobre o documento enviado:",
         value=f"Com base na lista de temas do STF/STJ abaixo, analise o seguinte documento e identifique a quais temas ele mais se assemelha. Considere a relação de conteúdo, jurisprudência aplicável e palavras-chave presentes no texto. Liste os temas mais relevantes e explique brevemente o motivo da correspondência. \n\nTemas Similares: \n\n {ragString}",
         # disabled = not uploaded_file,
-        height=300,
+        height=450,
     )
 
     if question:
@@ -157,6 +184,8 @@ if __name__ == '__main__':
                 )
         
             response = rag_chain.invoke(queryTemas)
+            
+            ## Imprime Resposta da LLM
             st.write(response)          
 
         except:
