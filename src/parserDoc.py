@@ -34,7 +34,7 @@ def getContentAllHtml(arquivo):
     
     all = ''
     
-    with open("test/" + arquivo) as fp:
+    with open(arquivo, encoding="utf-8", errors="ignore") as fp:
         
         soup = BeautifulSoup(fp, 'html.parser')
         
@@ -55,7 +55,7 @@ def getContentAllHtml(arquivo):
 def getContentPdf(processo):
     
     # Abre arquivo de Processo
-    reader = PdfReader('test/' + processo)
+    reader = PdfReader(processo)
 
     # printing number of pages in pdf file
     # print(len(reader.pages))
@@ -69,10 +69,6 @@ def getContentPdf(processo):
 
         # extracting text from page
         text = page.extract_text()
-        # text = page.extract_text(extraction_mode="layout", layout_mode_space_vertically=False)
-        
-        # print('==============================================================================')        
-        # print(text.strip())
         
         arText += '\n' + text.strip()
     
