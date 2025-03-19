@@ -20,27 +20,34 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 def load_prompt():
-    
-    corpus = getCorpusSTF()
-    
+        
     # prompt = """Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, que busca assinalar os teses com ou sem repercussao geral (temas) do STF ou STJ mais relevantes de cada processo.
     #     Lista ordenadamente por relevencia as teses ou temas com ou sem repercussão geral mais relevantes em portugues.
     # """    
     
-    prompt = """ Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, 
-        que busca assinalar os temas STF ou STJ mais relevantes de cada processo.
-        Contexto = {context}
-        Pergunta = {question}
-    """
+    # prompt = """ Voce é um software especialista em assuntos juridicos, focado em analise de processos e recursos, 
+    #     que busca assinalar os temas STF ou STJ mais relevantes de cada processo.
+    #     Contexto = {context}
+    #     Pergunta = {question}
+    # """
     
-    prompt_template = """
-        Regra:  Voce é um software especialista em assuntos juridicos, 
+    # prompt = """
+    #     Voce é um software especialista em assuntos juridicos, 
+    #     focado em analise de processos e recursos, 
+    #     que busca assinalar os temas STF ou STJ mais relevantes de cada processo.
+    #     Caso você não tenha informações relevantes, retorne 'Desculpe não consegui achar uma resolução para a sua questão".
+    #     Use os parametros abaixo para recuperar o contexto para a resposta.
+    #     Contexto = {context}
+    #     Pergunta = {question}
+    # """
+    
+    prompt = """
+        Voce é um software especialista em assuntos juridicos, 
         focado em analise de processos e recursos, 
         que busca assinalar os temas STF ou STJ mais relevantes de cada processo.
-        Caso você não tenha informações relevantes, retorne 'Desculpe não consegui achar uma resolução para a sua questão".
         Use os parametros abaixo para recuperar o contexto para a resposta.
-        Questão: {query}
-        Contexto: {context}
+        Contexto = {context}
+        Pergunta = {question}
     """    
     
     prompt = ChatPromptTemplate.from_template(prompt)
@@ -52,7 +59,6 @@ def load_llm():
     llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
     
     return llm
-
 
 if __name__ == '__main__':    
        

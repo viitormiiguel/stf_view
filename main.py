@@ -115,7 +115,7 @@ if __name__ == '__main__':
     
     with st.form("ragExec", clear_on_submit=True):        
         
-        uploaded_file = st.file_uploader(label="Faça o Upload do seu arquivo:", accept_multiple_files=False, type=["html", "pdf"])
+        uploaded_file = st.file_uploader(label="Faça o Upload do seu arquivo:", accept_multiple_files=True, type=["html", "pdf"])
         
         submitted = st.form_submit_button("Salvar Documento")
         
@@ -146,12 +146,14 @@ if __name__ == '__main__':
         remove_files()
 
     question = st.text_area(
-        label="Pergunta algo sobre o documento enviado:",
-        value=f"Com base na lista de temas do STF/STJ abaixo, analise o seguinte documento e identifique a quais temas ele mais se assemelha. Considere a relação de conteúdo, jurisprudência aplicável e palavras-chave presentes no texto. Liste os temas mais relevantes e explique brevemente o motivo da correspondência. \n\nTemas Similares: \n\n {ragString}",
-        height=500,
+        label = "Pergunta algo sobre o documento enviado:",
+        value = f"Com base na lista de temas do STF/STJ abaixo, analise o seguinte documento e identifique a quais temas ele mais se assemelha. Considere a relação de conteúdo, jurisprudência aplicável e palavras-chave presentes no texto. Dentre os Temas Similares abaixo, liste os Temas mais relevantes e explique brevemente o motivo da correspondência. \n\nTemas Similares: \n\n{ragString}",
+        height = 500,
     )
+    
+    send_button = st.button("Enviar Pergunta")
 
-    if question:
+    if question and send_button:
         
         ## Colocar string inteira do retorno dos teams
         queryTemas = question + ragString
@@ -176,8 +178,5 @@ if __name__ == '__main__':
 
         except:
             
-            alert = st.warning("Por favor, Realize o Upload de um arquivo que deseja realizar uma pesquisa.", icon="🚨")
+            alert = st.warning("Por favor, Realize o Upload de um arquivo que deseja realizar uma pergunta.", icon="🚨")
             
-            # time.sleep(3)
-            
-            # alert.empty()
